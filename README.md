@@ -1,36 +1,101 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ISC LMS — Study Club LMS & Organization Platform
 
-## Getting Started
+Platform LMS + Organization Management untuk Study Club dengan 3 divisi: **UI/UX Design, Web Development, Machine Learning**.
 
-First, run the development server:
+Stack: **Next.js 16.3.5** + **Supabase** (Postgres, Auth, RLS, Realtime, Storage) + **FastAPI 0.141.1** (ML) + **Vercel**.
+
+> Spec lengkap: lihat `AGENTS.md` & `BUILD_PLAN.md` (di `E:\ISC\`).
+
+## Quick Start
 
 ```bash
+# 1. Install
+npm install
+
+# 2. Env (copy template)
+copy .env.example .env.local
+# isi NEXT_PUBLIC_SUPABASE_URL & ANON_KEY dari dashboard supabase
+
+# 3. Dev
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# → http://localhost:3000
+
+# 4. Build check
+npm run build
+npm run lint
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Struktur
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+src/app/
+├── (auth)/login,register,forgot-password,reset-password
+├── (dashboard)/dashboard,learning,assignments,quizzes,attendance,grades,ranking,...
+├── organization/members,divisions,events,announcements
+├── mentor/students,assignments,quizzes,grades,attendance
+├── coordinator/division,courses,materials,reports
+├── admin/users,roles,permissions,settings,audit-logs
+├── verify/certificate/[token]
+└── api/v1/attendance,assignments,quizzes,notifications,ml
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+src/features/  # per-domain logic
+src/lib/
+  ├── supabase/{client,server,admin,middleware}
+  ├── auth/
+  ├── rbac/{can,permissions}
+  ├── validation/
+  ├── ml/client.ts
+  └── utils/{geofence,grade}
 
-## Learn More
+supabase/migrations/  # 001-006 (RBAC → Organization → Learning → ...)
+fastapi/app/          # ML service isolated dari LMS
+```
 
-To learn more about Next.js, take a look at the following resources:
+## RBAC
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Multi-role + scope-aware: `GLOBAL/ORGANIZATION/DIVISION/CLASS/COURSE/OWN` — lihat `src/types/roles.ts` & `src/lib/rbac/can.ts`. Jangan bypass RLS di client.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Supabase Setup (Phase 1 → 2)
 
-## Deploy on Vercel
+```bash
+npm i -g supabase
+supabase login
+supabase link --project-ref <PROJECT_REF>
+supabase db push   # setelah migration 001 siap
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Migrations urutan ada di `supabase/migrations/README.md`. Seed roles/permissions di `001`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## FastAPI
+
+```bash
+cd fastapi
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
+```
+
+Next.js panggil via `src/lib/ml/client.ts` (server-only, pakai `FASTAPI_INTERNAL_SECRET`).
+
+## Phases (AGENTS.md §57)
+
+- ✅ P1 Foundation — DONE: scaffold, shadcn, supabase helpers, RBAC, layout, middleware, 43 routes
+- ⬜ P2 Organization — divisions/members/classes
+- ⬜ P3 LMS Core — courses/modules/materials/roadmap
+- ... sampai P11 Hardening
+
+Lihat `E:\ISC\BUILD_PLAN.md` untuk checklist detail.
+
+## Scripts
+
+- `npm run dev` — dev server (Turbopack)
+- `npm run build` — production build
+- `npm run lint` — eslint
+- `npm run start` — start prod
+
+## Env Vars
+
+Lihat `.env.example` — hanya `NEXT_PUBLIC_*` yang expose ke browser. Service-role, Sender, FastAPI secret **server-only**.
+
+## Contributing
+
+Branch: `main` ← `develop` ← `feature/*` — commit style `feat:`, `fix:`, `chore:` (AGENTS.md §64). PR checklist §65 wajib.
