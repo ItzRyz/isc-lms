@@ -94,7 +94,7 @@ Lihat `E:\ISC\BUILD_PLAN.md` untuk checklist detail.
 
 ## Env Vars
 
-Lihat `.env.example` — hanya `NEXT_PUBLIC_*` yang expose ke browser. Service-role, Sender, FastAPI secret **server-only**.
+Lihat `.env.example` — hanya `NEXT_PUBLIC_*` yang expose ke browser. Service-role, Resend, FastAPI secret **server-only**.
 
 ## Contributing
 
