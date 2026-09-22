@@ -288,6 +288,70 @@ export interface Database {
         Insert: { id?: string; rubric_id: string; criterion: string; max_points: number; order_index?: number };
         Update: Partial<Database["public"]["Tables"]["rubric_items"]["Insert"]>;
       };
+      quizzes: {
+        Row: {
+          id: string;
+          course_id: string;
+          title: string;
+          description: string | null;
+          type: "ICE_BREAKING" | "WEEKLY" | "ASSESSMENT";
+          duration_minutes: number;
+          max_attempts: number;
+          shuffle_questions: boolean;
+          shuffle_choices: boolean;
+          available_from: string | null;
+          available_until: string | null;
+          is_published: boolean;
+          pass_score: number;
+          created_at: string;
+          updated_at: string;
+          deleted_at: string | null;
+        };
+        Insert: { id?: string; course_id: string; title: string; description?: string | null; type?: "ICE_BREAKING" | "WEEKLY" | "ASSESSMENT"; duration_minutes?: number; max_attempts?: number; is_published?: boolean };
+        Update: Partial<Database["public"]["Tables"]["quizzes"]["Insert"]>;
+      };
+      questions: {
+        Row: {
+          id: string;
+          course_id: string | null;
+          type: "MULTIPLE_CHOICE" | "TRUE_FALSE" | "MULTIPLE_ANSWER";
+          content: string;
+          choices: { id: string; text: string; is_correct: boolean }[];
+          explanation: string | null;
+          points: number;
+          created_at: string;
+          deleted_at: string | null;
+        };
+        Insert: { id?: string; course_id?: string | null; type: "MULTIPLE_CHOICE" | "TRUE_FALSE" | "MULTIPLE_ANSWER"; content: string; choices: { id: string; text: string; is_correct: boolean }[]; points?: number };
+        Update: Partial<Database["public"]["Tables"]["questions"]["Insert"]>;
+      };
+      quiz_questions: {
+        Row: { quiz_id: string; question_id: string; order_index: number; points_override: number | null; created_at: string };
+        Insert: { quiz_id: string; question_id: string; order_index?: number; points_override?: number | null };
+        Update: Partial<Database["public"]["Tables"]["quiz_questions"]["Insert"]>;
+      };
+      quiz_attempts: {
+        Row: {
+          id: string;
+          quiz_id: string;
+          user_id: string;
+          attempt_number: number;
+          status: "IN_PROGRESS" | "SUBMITTED" | "GRADED" | "EXPIRED";
+          score: number | null;
+          max_score: number | null;
+          started_at: string;
+          submitted_at: string | null;
+          expires_at: string | null;
+          time_spent_seconds: number | null;
+        };
+        Insert: { id?: string; quiz_id: string; user_id: string; attempt_number: number; status?: "IN_PROGRESS" | "SUBMITTED" | "GRADED" | "EXPIRED"; score?: number | null };
+        Update: Partial<Database["public"]["Tables"]["quiz_attempts"]["Insert"]>;
+      };
+      quiz_answers: {
+        Row: { id: string; attempt_id: string; question_id: string; selected_choice_ids: string[]; is_correct: boolean | null; points_earned: number | null; created_at: string };
+        Insert: { id: string; attempt_id: string; question_id: string; selected_choice_ids: string[] };
+        Update: Partial<Database["public"]["Tables"]["quiz_answers"]["Insert"]>;
+      };
       // Add other tables after migrations — see AGENTS.md §32
     };
     Views: Record<string, never>;
