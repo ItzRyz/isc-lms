@@ -142,6 +142,82 @@ export interface Database {
         Insert: { id?: string; name: string; slug: string; description?: string | null; is_active?: boolean };
         Update: Partial<Database["public"]["Tables"]["positions"]["Insert"]>;
       };
+      courses: {
+        Row: {
+          id: string;
+          division_id: string;
+          name: string;
+          slug: string;
+          description: string | null;
+          is_published: boolean;
+          scheduled_at: string | null;
+          estimated_duration: number | null;
+          created_at: string;
+          updated_at: string;
+          deleted_at: string | null;
+          deleted_by: string | null;
+        };
+        Insert: { id?: string; division_id: string; name: string; slug: string; description?: string | null; is_published?: boolean; scheduled_at?: string | null; estimated_duration?: number | null };
+        Update: Partial<Database["public"]["Tables"]["courses"]["Insert"]>;
+      };
+      modules: {
+        Row: { id: string; course_id: string; title: string; order_index: number; is_published: boolean; created_at: string; updated_at: string; deleted_at: string | null };
+        Insert: { id?: string; course_id: string; title: string; order_index: number; is_published?: boolean };
+        Update: Partial<Database["public"]["Tables"]["modules"]["Insert"]>;
+      };
+      materials: {
+        Row: {
+          id: string;
+          module_id: string;
+          course_id: string;
+          title: string;
+          type: "DOCUMENT" | "EXTERNAL_LINK" | "VIDEO" | "ASSIGNMENT_REF" | "QUIZ_REF";
+          content_url: string | null;
+          storage_path: string | null;
+          assignment_id: string | null;
+          quiz_id: string | null;
+          is_published: boolean;
+          scheduled_at: string | null;
+          estimated_duration: number | null;
+          version: number;
+          visibility: "PUBLIC" | "ENROLLED";
+          created_at: string;
+          updated_at: string;
+          deleted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          module_id: string;
+          course_id: string;
+          title: string;
+          type: "DOCUMENT" | "EXTERNAL_LINK" | "VIDEO" | "ASSIGNMENT_REF" | "QUIZ_REF";
+          content_url?: string | null;
+          storage_path?: string | null;
+          assignment_id?: string | null;
+          quiz_id?: string | null;
+          is_published?: boolean;
+          scheduled_at?: string | null;
+          estimated_duration?: number | null;
+          version?: number;
+          visibility?: "PUBLIC" | "ENROLLED";
+        };
+        Update: Partial<Database["public"]["Tables"]["materials"]["Insert"]>;
+      };
+      material_prerequisites: {
+        Row: { material_id: string; prerequisite_id: string; created_at: string };
+        Insert: { material_id: string; prerequisite_id: string };
+        Update: Partial<Database["public"]["Tables"]["material_prerequisites"]["Insert"]>;
+      };
+      material_progress: {
+        Row: { user_id: string; material_id: string; is_completed: boolean; completed_at: string | null; created_at: string; updated_at: string };
+        Insert: { user_id: string; material_id: string; is_completed?: boolean; completed_at?: string | null };
+        Update: Partial<Database["public"]["Tables"]["material_progress"]["Insert"]>;
+      };
+      material_bookmarks: {
+        Row: { user_id: string; material_id: string; created_at: string };
+        Insert: { user_id: string; material_id: string };
+        Update: Partial<Database["public"]["Tables"]["material_bookmarks"]["Insert"]>;
+      };
       // Add other tables after migrations — see AGENTS.md §32
     };
     Views: Record<string, never>;
