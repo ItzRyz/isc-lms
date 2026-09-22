@@ -5,15 +5,25 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { getDivisions } from "@/features/organization/actions";
 import { getAcademicPeriods, deleteAcademicPeriod } from "@/features/organization/actions-academic";
 import { getClasses, deleteClass } from "@/features/organization/actions-class";
+import { getBatches, deleteBatch } from "@/features/organization/actions-batch";
+import { getPositions, deletePosition } from "@/features/organization/actions-position";
 import { DivisionTable } from "@/features/organization/components/division-table";
 import { AcademicPeriodFormDialog } from "@/features/organization/components/academic-period-form";
 import { ClassFormDialog } from "@/features/organization/components/class-form";
+import { BatchFormDialog } from "@/features/organization/components/batch-form";
+import { PositionFormDialog } from "@/features/organization/components/position-form";
 import { Button } from "@/components/ui/button";
 
 export const dynamic = "force-dynamic";
 
 export default async function Page() {
-  const [divisions, periods, classes] = await Promise.all([getDivisions(), getAcademicPeriods(), getClasses()]);
+  const [divisions, periods, classes, batches, positions] = await Promise.all([
+    getDivisions(),
+    getAcademicPeriods(),
+    getClasses(),
+    getBatches(),
+    getPositions(),
+  ]);
   const isMock = divisions.length === 3 && divisions[0]?.id === "1";
 
   return (
@@ -36,10 +46,12 @@ export default async function Page() {
       )}
 
       <Tabs defaultValue="divisions">
-        <TabsList>
+        <TabsList className="flex flex-wrap">
           <TabsTrigger value="divisions">Divisions</TabsTrigger>
-          <TabsTrigger value="periods">Academic Periods</TabsTrigger>
+          <TabsTrigger value="periods">Periods</TabsTrigger>
           <TabsTrigger value="classes">Classes</TabsTrigger>
+          <TabsTrigger value="batches">Batches</TabsTrigger>
+          <TabsTrigger value="positions">Positions</TabsTrigger>
         </TabsList>
 
         <TabsContent value="divisions" className="space-y-4 pt-4">
@@ -164,6 +176,126 @@ export default async function Page() {
                       <TableRow>
                         <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
                           No classes. Create one — coordinator hanya bisa di division own.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="batches" className="space-y-4 pt-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Batches</CardTitle>
+                <CardDescription>Angkatan / cohort — FK untuk members. Managed by SECRETARY/LEADER. UNIQUE(slug).</CardDescription>
+              </div>
+              <BatchFormDialog triggerLabel="Create Batch" />
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Slug</TableHead>
+                      <TableHead>Year</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {batches.length ? (
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      (batches as any[]).map((b: { id: string; name: string; slug: string; year: number; is_active: boolean }) => (
+                        <TableRow key={b.id}>
+                          <TableCell className="font-medium">{b.name}</TableCell>
+                          <TableCell>
+                            <code className="text-xs bg-muted px-1 py-0.5 rounded">{b.slug}</code>
+                          </TableCell>
+                          <TableCell>{b.year}</TableCell>
+                          <TableCell>{b.is_active ? <Badge>Active</Badge> : <Badge variant="outline">Inactive</Badge>}</TableCell>
+                          <TableCell>
+                            <form
+                              action={async () => {
+                                "use server";
+                                await deleteBatch(b.id);
+                              }}
+                            >
+                              <Button variant="outline" size="sm" type="submit">
+                                Delete
+                              </Button>
+                            </form>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                          No batches.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="positions" className="space-y-4 pt-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Positions</CardTitle>
+                <CardDescription>Jabatan organisasi — sync dengan roles system (SUPER_ADMIN..MEMBER). Managed by SECRETARY.</CardDescription>
+              </div>
+              <PositionFormDialog triggerLabel="Create Position" />
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Slug</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {positions.length ? (
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      (positions as any[]).map((p: { id: string; name: string; slug: string; description: string | null; is_active: boolean }) => (
+                        <TableRow key={p.id}>
+                          <TableCell className="font-medium">{p.name}</TableCell>
+                          <TableCell>
+                            <code className="text-xs bg-muted px-1 py-0.5 rounded">{p.slug}</code>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground max-w-[240px] truncate">{p.description || "—"}</TableCell>
+                          <TableCell>{p.is_active ? <Badge>Active</Badge> : <Badge variant="outline">Inactive</Badge>}</TableCell>
+                          <TableCell>
+                            <form
+                              action={async () => {
+                                "use server";
+                                await deletePosition(p.id);
+                              }}
+                            >
+                              <Button variant="outline" size="sm" type="submit">
+                                Delete
+                              </Button>
+                            </form>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                          No positions.
                         </TableCell>
                       </TableRow>
                     )}

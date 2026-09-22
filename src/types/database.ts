@@ -113,6 +113,35 @@ export interface Database {
         Insert: { id?: string; name: string; slug: string; description?: string | null; is_active?: boolean };
         Update: Partial<Database["public"]["Tables"]["organizations"]["Insert"]>;
       };
+      batches: {
+        Row: {
+          id: string;
+          name: string;
+          slug: string;
+          year: number;
+          description: string | null;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+          deleted_at: string | null;
+        };
+        Insert: { id?: string; name: string; slug: string; year: number; description?: string | null; is_active?: boolean };
+        Update: Partial<Database["public"]["Tables"]["batches"]["Insert"]>;
+      };
+      positions: {
+        Row: {
+          id: string;
+          name: string;
+          slug: string;
+          description: string | null;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+          deleted_at: string | null;
+        };
+        Insert: { id?: string; name: string; slug: string; description?: string | null; is_active?: boolean };
+        Update: Partial<Database["public"]["Tables"]["positions"]["Insert"]>;
+      };
       // Add other tables after migrations — see AGENTS.md §32
     };
     Views: Record<string, never>;
