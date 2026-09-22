@@ -24,6 +24,63 @@ export interface Database {
         };
         Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
       };
+      divisions: {
+        Row: {
+          id: string;
+          organization_id: string | null;
+          name: string;
+          slug: string;
+          description: string | null;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+          deleted_at: string | null;
+          deleted_by: string | null;
+        };
+        Insert: {
+          id?: string;
+          organization_id?: string | null;
+          name: string;
+          slug: string;
+          description?: string | null;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+          deleted_at?: string | null;
+          deleted_by?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["divisions"]["Insert"]>;
+      };
+      user_divisions: {
+        Row: { user_id: string; division_id: string; created_at: string };
+        Insert: { user_id: string; division_id: string; created_at?: string };
+        Update: Partial<Database["public"]["Tables"]["user_divisions"]["Insert"]>;
+      };
+      classes: {
+        Row: {
+          id: string;
+          division_id: string;
+          academic_period_id: string | null;
+          name: string;
+          slug: string;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+          deleted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          division_id: string;
+          academic_period_id?: string | null;
+          name: string;
+          slug: string;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+          deleted_at?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["classes"]["Insert"]>;
+      };
       // Add other tables after migrations — see AGENTS.md §32
     };
     Views: Record<string, never>;
