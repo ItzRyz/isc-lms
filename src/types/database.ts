@@ -218,6 +218,76 @@ export interface Database {
         Insert: { user_id: string; material_id: string };
         Update: Partial<Database["public"]["Tables"]["material_bookmarks"]["Insert"]>;
       };
+      assignments: {
+        Row: {
+          id: string;
+          course_id: string;
+          module_id: string | null;
+          title: string;
+          description: string | null;
+          type: "INDIVIDUAL" | "GROUP";
+          submission_type: "FILE" | "TEXT" | "FILE_AND_TEXT";
+          due_at: string | null;
+          allow_late: boolean;
+          max_score: number;
+          max_attempts: number;
+          is_published: boolean;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+          deleted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          course_id: string;
+          module_id?: string | null;
+          title: string;
+          description?: string | null;
+          type?: "INDIVIDUAL" | "GROUP";
+          submission_type?: "FILE" | "TEXT" | "FILE_AND_TEXT";
+          due_at?: string | null;
+          allow_late?: boolean;
+          max_score?: number;
+          max_attempts?: number;
+          is_published?: boolean;
+        };
+        Update: Partial<Database["public"]["Tables"]["assignments"]["Insert"]>;
+      };
+      submissions: {
+        Row: {
+          id: string;
+          assignment_id: string;
+          assignment_group_id: string | null;
+          user_id: string;
+          status: "NOT_STARTED" | "DRAFT" | "SUBMITTED" | "LATE" | "GRADED" | "REVISION_REQUIRED" | "RESUBMITTED";
+          content_text: string | null;
+          score: number | null;
+          feedback: string | null;
+          submitted_at: string | null;
+          graded_at: string | null;
+          graded_by: string | null;
+          attempt_number: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: { id?: string; assignment_id: string; user_id: string; status?: "NOT_STARTED" | "DRAFT" | "SUBMITTED" | "LATE" | "GRADED" | "REVISION_REQUIRED" | "RESUBMITTED"; content_text?: string | null; score?: number | null; attempt_number?: number };
+        Update: Partial<Database["public"]["Tables"]["submissions"]["Insert"]>;
+      };
+      assignment_groups: {
+        Row: { id: string; assignment_id: string; name: string; created_at: string };
+        Insert: { id?: string; assignment_id: string; name: string };
+        Update: Partial<Database["public"]["Tables"]["assignment_groups"]["Insert"]>;
+      };
+      rubrics: {
+        Row: { id: string; assignment_id: string; title: string; description: string | null; created_at: string };
+        Insert: { id?: string; assignment_id: string; title: string; description?: string | null };
+        Update: Partial<Database["public"]["Tables"]["rubrics"]["Insert"]>;
+      };
+      rubric_items: {
+        Row: { id: string; rubric_id: string; criterion: string; max_points: number; order_index: number };
+        Insert: { id?: string; rubric_id: string; criterion: string; max_points: number; order_index?: number };
+        Update: Partial<Database["public"]["Tables"]["rubric_items"]["Insert"]>;
+      };
       // Add other tables after migrations — see AGENTS.md §32
     };
     Views: Record<string, never>;
