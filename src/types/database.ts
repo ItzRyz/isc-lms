@@ -352,6 +352,54 @@ export interface Database {
         Insert: { id: string; attempt_id: string; question_id: string; selected_choice_ids: string[] };
         Update: Partial<Database["public"]["Tables"]["quiz_answers"]["Insert"]>;
       };
+      attendance_sessions: {
+        Row: {
+          id: string;
+          division_id: string | null;
+          class_id: string | null;
+          course_id: string | null;
+          title: string;
+          started_at: string;
+          ended_at: string;
+          latitude: number | null;
+          longitude: number | null;
+          radius_meters: number | null;
+          qr_token: string;
+          status: "OPEN" | "CLOSED" | "CANCELLED";
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: { id?: string; division_id?: string | null; class_id?: string | null; title?: string; started_at: string; ended_at: string; latitude?: number | null; longitude?: number | null; radius_meters?: number | null; qr_token?: string; status?: "OPEN" | "CLOSED" | "CANCELLED" };
+        Update: Partial<Database["public"]["Tables"]["attendance_sessions"]["Insert"]>;
+      };
+      attendance_records: {
+        Row: {
+          id: string;
+          session_id: string;
+          user_id: string;
+          status: "PRESENT" | "LATE" | "PERMITTED" | "SICK" | "ABSENT";
+          checked_in_at: string | null;
+          latitude: number | null;
+          longitude: number | null;
+          distance_meters: number | null;
+          is_geofence_valid: boolean | null;
+          qr_token_used: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: { id?: string; session_id: string; user_id: string; status: "PRESENT" | "LATE" | "PERMITTED" | "SICK" | "ABSENT"; checked_in_at?: string | null };
+        Update: Partial<Database["public"]["Tables"]["attendance_records"]["Insert"]>;
+      };
+      attendance_corrections: {
+        Row: { id: string; record_id: string; old_status: string | null; new_status: string; reason: string; corrected_by: string | null; created_at: string };
+        Insert: { id?: string; record_id: string; new_status: string; reason: string };
+        Update: Partial<Database["public"]["Tables"]["attendance_corrections"]["Insert"]>;
+      };
+      audit_logs: {
+        Row: { id: string; actor_id: string | null; action: string; entity_type: string; entity_id: string; old_value: unknown | null; new_value: unknown | null; created_at: string };
+        Insert: { id?: string; actor_id?: string | null; action: string; entity_type: string; entity_id: string; old_value?: unknown | null; new_value?: unknown | null };
+        Update: Partial<Database["public"]["Tables"]["audit_logs"]["Insert"]>;
+      };
       // Add other tables after migrations — see AGENTS.md §32
     };
     Views: Record<string, never>;
