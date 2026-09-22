@@ -81,6 +81,38 @@ export interface Database {
         };
         Update: Partial<Database["public"]["Tables"]["classes"]["Insert"]>;
       };
+      academic_periods: {
+        Row: {
+          id: string;
+          name: string;
+          start_date: string;
+          end_date: string;
+          is_active: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          start_date: string;
+          end_date: string;
+          is_active?: boolean;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["academic_periods"]["Insert"]>;
+      };
+      organizations: {
+        Row: {
+          id: string;
+          name: string;
+          slug: string;
+          description: string | null;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: { id?: string; name: string; slug: string; description?: string | null; is_active?: boolean };
+        Update: Partial<Database["public"]["Tables"]["organizations"]["Insert"]>;
+      };
       // Add other tables after migrations — see AGENTS.md §32
     };
     Views: Record<string, never>;

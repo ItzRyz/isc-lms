@@ -22,6 +22,38 @@ function isSupabaseConfigured(): boolean {
   return !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
 }
 
+async function isCoordinatorOfDivision(supabase: Awaited<ReturnType<typeof createClient>>, userId: string, divisionId: string): Promise<boolean> {
+  const { data: ud } = await supabase.from("user_divisions").select("division_id").eq("user_id", userId).eq("division_id", divisionId).maybeSingle();
+  if (ud) return true;
+  // fallback: check user_roles division_id
+  const { data: ur } = await supabase
+    .from("user_roles")
+    .select("roles(name), division_id")
+    .eq("user_id", userId);
+  if (ur) {
+    for (const r of ur as unknown as { roles: { name: string }; division_id: string | null }[]) {
+      if (r.roles.name.endsWith("_COORDINATOR") && r.division_id === divisionId) return true;
+    }
+  }
+  return false;
+}
+
+async function canManageDivision(supabase: Awaited<ReturnType<typeof createClient>>, userId: string, divisionId?: string): Promise<boolean> {
+  // SUPER_ADMIN / LEADER / CO_LEADER can manage all
+  const { data: roles } = await supabase
+    .from("user_roles")
+    .select("roles(name)")
+    .eq("user_id", userId);
+  const roleNames = (roles || []).map((r: unknown) => (r as { roles: { name: string } }).roles.name);
+  if (roleNames.includes("SUPER_ADMIN") || roleNames.includes("LEADER") || roleNames.includes("CO_LEADER")) return true;
+  const isCoordinator = roleNames.some((n: string) => n.endsWith("_COORDINATOR"));
+  if (!isCoordinator) return false;
+  // Coordinator: if divisionId provided, check own
+  if (divisionId) return isCoordinatorOfDivision(supabase, userId, divisionId);
+  // create new division: coordinator tidak boleh create new (per matrix CRUD own) — hanya SUPER_ADMIN/LEADER
+  return false;
+}
+
 export async function getDivisions(): Promise<DivisionRow[]> {
   if (!isSupabaseConfigured()) {
     // Fallback seed untuk dev tanpa Supabase (AGENTS.md §1 mock not allowed di prod, tapi ok untuk dev preview)
@@ -68,6 +100,11 @@ export async function createDivision(formData: FormData): Promise<ActionResult> 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, error: { code: "UNAUTHENTICATED", message: "Login required" } };
 
+  // Coordinator scope: create hanya SUPER_ADMIN/LEADER (coordinator CRUD own, tidak create new)
+  if (!(await canManageDivision(supabase, user.id))) {
+    return { success: false, error: { code: "FORBIDDEN", message: "Only SUPER_ADMIN/LEADER can create division" } };
+  }
+
   // RLS akan block jika tidak punya permission; app layer juga check via has_permission di DB bisa ditambah
   const { error } = await supabase.from("divisions").insert({
     name: parsed.data.name,
@@ -104,6 +141,10 @@ export async function updateDivision(id: string, formData: FormData): Promise<Ac
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, error: { code: "UNAUTHENTICATED", message: "Login required" } };
 
+  if (!(await canManageDivision(supabase, user.id, id))) {
+    return { success: false, error: { code: "FORBIDDEN", message: "Not allowed for this division (coordinator own only)" } };
+  }
+
   const { error } = await supabase.from("divisions").update({
     ...parsed.data,
     updated_at: new Date().toISOString(),
@@ -121,6 +162,10 @@ export async function deleteDivision(id: string): Promise<ActionResult> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, error: { code: "UNAUTHENTICATED", message: "Login required" } };
+
+  if (!(await canManageDivision(supabase, user.id, id))) {
+    return { success: false, error: { code: "FORBIDDEN", message: "Not allowed for this division" } };
+  }
 
   // Soft delete per AGENTS.md §34 (preserve history)
   const { error } = await supabase.from("divisions").update({
