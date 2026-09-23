@@ -500,6 +500,66 @@ export interface Database {
         Insert: { user_id: string; event_type: string; in_app?: boolean; realtime?: boolean; email?: boolean };
         Update: Partial<Database["public"]["Tables"]["notification_preferences"]["Insert"]>;
       };
+      events: {
+        Row: { id: string; title: string; description: string | null; type: "WORKSHOP" | "SEMINAR" | "COMPETITION" | "MEETING" | "STUDY_SESSION" | "OTHER"; division_id: string | null; location: string | null; start_at: string; end_at: string; max_participants: number | null; requires_registration: boolean; points_reward: number; is_published: boolean; created_by: string | null; created_at: string; updated_at: string; deleted_at: string | null };
+        Insert: { id?: string; title: string; type?: "WORKSHOP" | "SEMINAR" | "COMPETITION" | "MEETING" | "STUDY_SESSION" | "OTHER"; start_at: string; end_at: string; division_id?: string | null; location?: string | null };
+        Update: Partial<Database["public"]["Tables"]["events"]["Insert"]>;
+      };
+      event_participants: {
+        Row: { event_id: string; user_id: string; registered_at: string; attended: boolean; attended_at: string | null };
+        Insert: { event_id: string; user_id: string; attended?: boolean };
+        Update: Partial<Database["public"]["Tables"]["event_participants"]["Insert"]>;
+      };
+      competitions: {
+        Row: { id: string; event_id: string | null; name: string; description: string | null; division_id: string | null; start_at: string; end_at: string; max_participants: number | null; is_published: boolean; created_at: string };
+        Insert: { id?: string; name: string; start_at: string; end_at: string; event_id?: string | null; division_id?: string | null };
+        Update: Partial<Database["public"]["Tables"]["competitions"]["Insert"]>;
+      };
+      competition_participants: {
+        Row: { competition_id: string; user_id: string; result: "WINNER" | "PARTICIPANT" | "DISQUALIFIED" | null; score: number | null; registered_at: string };
+        Insert: { competition_id: string; user_id: string; result?: "WINNER" | "PARTICIPANT" | "DISQUALIFIED" | null; score?: number | null };
+        Update: Partial<Database["public"]["Tables"]["competition_participants"]["Insert"]>;
+      };
+      achievements: {
+        Row: { id: string; slug: string; name: string; description: string | null; icon: string | null; points_reward: number; created_at: string };
+        Insert: { id?: string; slug: string; name: string; description?: string | null; points_reward?: number };
+        Update: Partial<Database["public"]["Tables"]["achievements"]["Insert"]>;
+      };
+      user_achievements: {
+        Row: { user_id: string; achievement_id: string; earned_at: string; source_type: string | null; source_id: string | null };
+        Insert: { user_id: string; achievement_id: string; source_type?: string | null; source_id?: string | null };
+        Update: Partial<Database["public"]["Tables"]["user_achievements"]["Insert"]>;
+      };
+      achievement_rules: {
+        Row: { id: string; achievement_id: string; event_type: string; condition_json: unknown; created_at: string };
+        Insert: { id?: string; achievement_id: string; event_type: string; condition_json?: unknown };
+        Update: Partial<Database["public"]["Tables"]["achievement_rules"]["Insert"]>;
+      };
+      certificates: {
+        Row: { id: string; certificate_number: string; user_id: string; division_id: string | null; program_id: string | null; event_id: string | null; competition_id: string | null; issued_at: string; issuer: string; verification_token: string; pdf_path: string | null; created_at: string };
+        Insert: { id?: string; certificate_number: string; user_id: string; verification_token: string; division_id?: string | null; program_id?: string | null };
+        Update: Partial<Database["public"]["Tables"]["certificates"]["Insert"]>;
+      };
+      financial_accounts: {
+        Row: { id: string; name: string; balance: number; created_at: string; updated_at: string };
+        Insert: { id?: string; name: string; balance?: number };
+        Update: Partial<Database["public"]["Tables"]["financial_accounts"]["Insert"]>;
+      };
+      financial_categories: {
+        Row: { id: string; name: string; type: "INCOME" | "EXPENSE"; created_at: string };
+        Insert: { id?: string; name: string; type: "INCOME" | "EXPENSE" };
+        Update: Partial<Database["public"]["Tables"]["financial_categories"]["Insert"]>;
+      };
+      financial_transactions: {
+        Row: { id: string; account_id: string; category_id: string | null; amount: number; description: string | null; created_by: string | null; created_at: string };
+        Insert: { id?: string; account_id: string; amount: number; category_id?: string | null; description?: string | null };
+        Update: Partial<Database["public"]["Tables"]["financial_transactions"]["Insert"]>;
+      };
+      payments: {
+        Row: { id: string; user_id: string; amount: number; status: "PENDING" | "PAID" | "FAILED"; method: string | null; transaction_id: string | null; created_at: string };
+        Insert: { id?: string; user_id: string; amount: number; status?: "PENDING" | "PAID" | "FAILED" };
+        Update: Partial<Database["public"]["Tables"]["payments"]["Insert"]>;
+      };
       // Add other tables after migrations — see AGENTS.md §32
     };
     Views: Record<string, never>;
