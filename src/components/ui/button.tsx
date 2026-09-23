@@ -45,11 +45,25 @@ function Button({
   variant = "default",
   size = "default",
   asChild = false,
+  render,
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean
+    render?: React.ReactElement
   }) {
+  if (render) {
+    const renderProps = render.props as { className?: string; children?: React.ReactNode };
+    return React.cloneElement(render, {
+      "data-slot": "button",
+      "data-variant": variant,
+      "data-size": size,
+      className: cn(buttonVariants({ variant, size, className }), renderProps.className),
+      ...props,
+      children: (props as { children?: React.ReactNode }).children ?? renderProps.children,
+    } as never);
+  }
+
   const Comp = asChild ? Slot.Root : "button"
 
   return (

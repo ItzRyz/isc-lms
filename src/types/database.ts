@@ -400,6 +400,56 @@ export interface Database {
         Insert: { id?: string; actor_id?: string | null; action: string; entity_type: string; entity_id: string; old_value?: unknown | null; new_value?: unknown | null };
         Update: Partial<Database["public"]["Tables"]["audit_logs"]["Insert"]>;
       };
+      point_transactions: {
+        Row: { id: string; user_id: string; amount: number; type: "EARN" | "PENALTY" | "CORRECTION"; source_type: "QUIZ" | "ASSIGNMENT" | "ATTENDANCE" | "COMPETITION" | "PRACTICE" | "MANUAL"; source_id: string | null; description: string | null; created_by: string | null; created_at: string };
+        Insert: { id?: string; user_id: string; amount: number; type?: "EARN" | "PENALTY" | "CORRECTION"; source_type: "QUIZ" | "ASSIGNMENT" | "ATTENDANCE" | "COMPETITION" | "PRACTICE" | "MANUAL"; description?: string | null };
+        Update: Partial<Database["public"]["Tables"]["point_transactions"]["Insert"]>;
+      };
+      grade_components: {
+        Row: { id: string; name: "QUIZ" | "ASSIGNMENT" | "PRACTICE" | "ATTENDANCE" | "COMPETITION"; description: string | null; created_at: string };
+        Insert: { id?: string; name: "QUIZ" | "ASSIGNMENT" | "PRACTICE" | "ATTENDANCE" | "COMPETITION" };
+        Update: Partial<Database["public"]["Tables"]["grade_components"]["Insert"]>;
+      };
+      grade_weights: {
+        Row: { id: string; academic_period_id: string | null; course_id: string | null; division_id: string | null; component_id: string; weight: number; created_at: string };
+        Insert: { id?: string; component_id: string; weight: number; academic_period_id?: string | null; course_id?: string | null; division_id?: string | null };
+        Update: Partial<Database["public"]["Tables"]["grade_weights"]["Insert"]>;
+      };
+      grade_scales: {
+        Row: { id: string; academic_period_id: string | null; grade: "A" | "B" | "C" | "D" | "E"; min_score: number; max_score: number; created_at: string };
+        Insert: { id?: string; grade: "A" | "B" | "C" | "D" | "E"; min_score: number; max_score: number; academic_period_id?: string | null };
+        Update: Partial<Database["public"]["Tables"]["grade_scales"]["Insert"]>;
+      };
+      grades: {
+        Row: { id: string; user_id: string; academic_period_id: string | null; course_id: string | null; component_id: string; score: number; max_score: number; weight: number | null; final_score: number | null; grade: "A" | "B" | "C" | "D" | "E" | null; passed: boolean | null; created_at: string; updated_at: string };
+        Insert: { id?: string; user_id: string; component_id: string; score: number; academic_period_id?: string | null; course_id?: string | null };
+        Update: Partial<Database["public"]["Tables"]["grades"]["Insert"]>;
+      };
+      kkm_settings: {
+        Row: { id: string; course_id: string | null; academic_period_id: string | null; kkm_score: number; created_at: string };
+        Insert: { id?: string; kkm_score: number; course_id?: string | null; academic_period_id?: string | null };
+        Update: Partial<Database["public"]["Tables"]["kkm_settings"]["Insert"]>;
+      };
+      ranking_periods: {
+        Row: { id: string; name: string; type: "MONTHLY" | "SEMESTER"; start_date: string; end_date: string; division_id: string | null; academic_period_id: string | null; status: "ACTIVE" | "CLOSED" | "ARCHIVED"; created_at: string };
+        Insert: { id?: string; name: string; type: "MONTHLY" | "SEMESTER"; start_date: string; end_date: string; division_id?: string | null; academic_period_id?: string | null };
+        Update: Partial<Database["public"]["Tables"]["ranking_periods"]["Insert"]>;
+      };
+      ranking_entries: {
+        Row: { id: string; ranking_period_id: string; user_id: string; rank: number; score: number; division_id: string | null; created_at: string };
+        Insert: { id?: string; ranking_period_id: string; user_id: string; rank: number; score: number };
+        Update: Partial<Database["public"]["Tables"]["ranking_entries"]["Insert"]>;
+      };
+      report_cards: {
+        Row: { id: string; user_id: string; academic_period_id: string; division_id: string | null; final_score: number; grade: string; remarks: string | null; mentor_id: string | null; coordinator_id: string | null; generated_at: string };
+        Insert: { id?: string; user_id: string; academic_period_id: string; final_score: number; grade: string };
+        Update: Partial<Database["public"]["Tables"]["report_cards"]["Insert"]>;
+      };
+      report_card_items: {
+        Row: { id: string; report_card_id: string; component_id: string; score: number; weight: number; weighted_score: number };
+        Insert: { id?: string; report_card_id: string; component_id: string; score: number; weight: number; weighted_score: number };
+        Update: Partial<Database["public"]["Tables"]["report_card_items"]["Insert"]>;
+      };
       // Add other tables after migrations — see AGENTS.md §32
     };
     Views: Record<string, never>;
