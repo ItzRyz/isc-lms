@@ -31,35 +31,90 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  const { data } = await supabase.auth.getClaims()
-  const user = data?.claims
+  // If Supabase not configured (dev fallback), allow all
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return supabaseResponse;
 
-  const isAuthRoute = request.nextUrl.pathname.startsWith("/login") ||
-    request.nextUrl.pathname.startsWith("/register") ||
-    request.nextUrl.pathname.startsWith("/forgot-password");
+  const { data } = await supabase.auth.getClaims()
+  const user = data?.claims as { sub?: string } | null
+  const userId = user?.sub
+
+  const pathname = request.nextUrl.pathname
+  const isAuthRoute =
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/register") ||
+    pathname.startsWith("/forgot-password") ||
+    pathname.startsWith("/reset-password");
 
   const isProtectedRoute =
-    request.nextUrl.pathname.startsWith("/dashboard") ||
-    request.nextUrl.pathname.startsWith("/learning") ||
-    request.nextUrl.pathname.startsWith("/assignments") ||
-    request.nextUrl.pathname.startsWith("/quizzes") ||
-    request.nextUrl.pathname.startsWith("/attendance") ||
-    request.nextUrl.pathname.startsWith("/grades") ||
-    request.nextUrl.pathname.startsWith("/organization") ||
-    request.nextUrl.pathname.startsWith("/mentor") ||
-    request.nextUrl.pathname.startsWith("/coordinator") ||
-    request.nextUrl.pathname.startsWith("/admin");
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/learning") ||
+    pathname.startsWith("/assignments") ||
+    pathname.startsWith("/quizzes") ||
+    pathname.startsWith("/attendance") ||
+    pathname.startsWith("/grades") ||
+    pathname.startsWith("/ranking") ||
+    pathname.startsWith("/achievements") ||
+    pathname.startsWith("/certificates") ||
+    pathname.startsWith("/calendar") ||
+    pathname.startsWith("/discussions") ||
+    pathname.startsWith("/messages") ||
+    pathname.startsWith("/notifications") ||
+    pathname.startsWith("/organization") ||
+    pathname.startsWith("/mentor") ||
+    pathname.startsWith("/coordinator") ||
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/finance");
 
-  if (!user && isProtectedRoute) {
+  const isPublicRoute = pathname.startsWith("/verify/certificate") || pathname === "/" || pathname.startsWith("/_next") || pathname === "/favicon.ico";
+
+  if (!userId && isProtectedRoute && !isPublicRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
-  if (user && isAuthRoute) {
+  if (userId && isAuthRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);
+  }
+
+  // Role guard (server-authoritative, RLS is final boundary)
+  if (userId && isProtectedRoute) {
+    const { data: roles } = await supabase.from("user_roles").select("roles(name)").eq("user_id", userId);
+    const roleNames = (roles as Array<{ roles: { name: string } }> | null)?.map((r) => r.roles.name) || [];
+
+    const isAdminRoute = pathname.startsWith("/admin");
+    const isFinanceRoute = pathname.startsWith("/finance");
+    const isCoordinatorRoute = pathname.startsWith("/coordinator");
+    const isMentorRoute = pathname.startsWith("/mentor");
+
+    if (isAdminRoute && !roleNames.includes("SUPER_ADMIN")) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/dashboard";
+      return NextResponse.redirect(url);
+    }
+    if (isFinanceRoute && !roleNames.includes("TREASURER") && !roleNames.includes("SUPER_ADMIN")) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/dashboard";
+      return NextResponse.redirect(url);
+    }
+    if (isCoordinatorRoute) {
+      const isCoord = roleNames.some((n) => n.endsWith("_COORDINATOR")) || roleNames.includes("LEADER") || roleNames.includes("SUPER_ADMIN");
+      if (!isCoord) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/dashboard";
+        return NextResponse.redirect(url);
+      }
+    }
+    if (isMentorRoute) {
+      const isMentor = roleNames.includes("MENTOR") || roleNames.some((n) => n.endsWith("_COORDINATOR")) || roleNames.includes("SUPER_ADMIN");
+      if (!isMentor) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/dashboard";
+        return NextResponse.redirect(url);
+      }
+    }
   }
 
   return supabaseResponse
