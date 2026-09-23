@@ -450,6 +450,56 @@ export interface Database {
         Insert: { id?: string; report_card_id: string; component_id: string; score: number; weight: number; weighted_score: number };
         Update: Partial<Database["public"]["Tables"]["report_card_items"]["Insert"]>;
       };
+      announcements: {
+        Row: { id: string; title: string; content: string; division_id: string | null; class_id: string | null; is_pinned: boolean; is_published: boolean; created_by: string | null; created_at: string; updated_at: string; deleted_at: string | null };
+        Insert: { id?: string; title: string; content: string; division_id?: string | null; class_id?: string | null; is_pinned?: boolean; is_published?: boolean };
+        Update: Partial<Database["public"]["Tables"]["announcements"]["Insert"]>;
+      };
+      forum_categories: {
+        Row: { id: string; name: string; slug: string; description: string | null; division_id: string | null; created_at: string };
+        Insert: { id?: string; name: string; slug: string; description?: string | null };
+        Update: Partial<Database["public"]["Tables"]["forum_categories"]["Insert"]>;
+      };
+      forum_threads: {
+        Row: { id: string; category_id: string; title: string; content: string; created_by: string; is_pinned: boolean; is_locked: boolean; view_count: number; created_at: string; updated_at: string; deleted_at: string | null };
+        Insert: { id?: string; category_id: string; title: string; content: string; created_by: string; is_pinned?: boolean; is_locked?: boolean };
+        Update: Partial<Database["public"]["Tables"]["forum_threads"]["Insert"]>;
+      };
+      forum_posts: {
+        Row: { id: string; thread_id: string; content: string; created_by: string; created_at: string; updated_at: string; deleted_at: string | null };
+        Insert: { id?: string; thread_id: string; content: string; created_by: string };
+        Update: Partial<Database["public"]["Tables"]["forum_posts"]["Insert"]>;
+      };
+      material_comments: {
+        Row: { id: string; material_id: string; content: string; parent_id: string | null; created_by: string; created_at: string; updated_at: string; deleted_at: string | null };
+        Insert: { id?: string; material_id: string; content: string; created_by: string; parent_id?: string | null };
+        Update: Partial<Database["public"]["Tables"]["material_comments"]["Insert"]>;
+      };
+      conversations: {
+        Row: { id: string; is_group: boolean; title: string | null; created_by: string | null; created_at: string; updated_at: string };
+        Insert: { id?: string; is_group?: boolean; title?: string | null };
+        Update: Partial<Database["public"]["Tables"]["conversations"]["Insert"]>;
+      };
+      conversation_members: {
+        Row: { conversation_id: string; user_id: string; joined_at: string; last_read_at: string | null };
+        Insert: { conversation_id: string; user_id: string };
+        Update: Partial<Database["public"]["Tables"]["conversation_members"]["Insert"]>;
+      };
+      messages: {
+        Row: { id: string; conversation_id: string; sender_id: string; content: string; created_at: string; deleted_at: string | null };
+        Insert: { id: string; conversation_id: string; sender_id: string; content: string };
+        Update: Partial<Database["public"]["Tables"]["messages"]["Insert"]>;
+      };
+      notifications: {
+        Row: { id: string; recipient_id: string; type: string; title: string; body: string | null; entity_type: string | null; entity_id: string | null; channel: "IN_APP" | "REALTIME" | "EMAIL"; read_at: string | null; created_at: string };
+        Insert: { id?: string; recipient_id: string; type: string; title: string; body?: string | null; entity_type?: string | null; entity_id?: string | null; channel?: "IN_APP" | "REALTIME" | "EMAIL" };
+        Update: Partial<Database["public"]["Tables"]["notifications"]["Insert"]>;
+      };
+      notification_preferences: {
+        Row: { user_id: string; event_type: string; in_app: boolean; realtime: boolean; email: boolean; created_at: string; updated_at: string };
+        Insert: { user_id: string; event_type: string; in_app?: boolean; realtime?: boolean; email?: boolean };
+        Update: Partial<Database["public"]["Tables"]["notification_preferences"]["Insert"]>;
+      };
       // Add other tables after migrations — see AGENTS.md §32
     };
     Views: Record<string, never>;
