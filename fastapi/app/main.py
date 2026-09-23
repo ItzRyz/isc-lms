@@ -1,52 +1,61 @@
 from fastapi import FastAPI, Header, HTTPException
-from pydantic import BaseModel
-from typing import Optional, List
-import os
+from app.schemas import (
+    RecommendationRequest, RecommendationResponse,
+    LearningAnalysisRequest, LearningAnalysisResponse,
+    StudentRiskRequest, StudentRiskResponse,
+    ContentRecommendationRequest, ContentRecommendationResponse,
+)
+from app.core.config import settings
+from app.services.recommendation import recommend_next_materials, recommend_courses, risk_level
+from app.services.learning_analysis import analyze_learning
+from app.services.student_risk import predict_risk
+from app.services.content_recommendation import recommend_content
 
-app = FastAPI(title="ISC LMS ML Service", version="1.0.0")
-
-FASTAPI_INTERNAL_SECRET = os.getenv("FASTAPI_INTERNAL_SECRET", "dev-secret")
-
-class RecommendationRequest(BaseModel):
-    user_id: str
-    learning_progress: float
-    quiz_scores: List[float] = []
-    assignment_scores: List[float] = []
-    attendance_rate: float = 0
-    completed_materials: List[str] = []
-    division: Optional[str] = None
-    course: Optional[str] = None
-
-class RecommendationResponse(BaseModel):
-    recommended_materials: List[str]
-    recommended_next_step: Optional[str]
-    risk_level: str  # low | medium | high
-    explanation: str
-    confidence: float
+app = FastAPI(title="ISC LMS ML Service", version="1.0.0", description="P10 ML — advisory only, tidak mutate grades (§45)")
 
 def verify_internal_secret(x_internal_secret: str = Header(None)):
-    # Next.js harus kirim X-Internal-Secret dari server-only context (AGENTS.md §44)
-    if x_internal_secret != FASTAPI_INTERNAL_SECRET:
+    if x_internal_secret != settings.fastapi_internal_secret:
         raise HTTPException(status_code=401, detail="Invalid internal secret")
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "service": "isc-lms-ml"}
+    return {"status": "ok", "service": "isc-lms-ml", "version": settings.model_version}
 
 @app.post("/api/v1/ml/recommendation", response_model=RecommendationResponse)
 def recommendation(req: RecommendationRequest, x_internal_secret: str = Header(None)):
     verify_internal_secret(x_internal_secret)
-    # Placeholder — ML output advisory only, tidak mutate academic records (AGENTS.md §45)
-    risk = "low" if req.learning_progress > 70 else "medium" if req.learning_progress > 40 else "high"
+    quiz_avg = sum(req.quiz_scores) / len(req.quiz_scores) if req.quiz_scores else 50
+    assign_avg = sum(req.assignment_scores) / len(req.assignment_scores) if req.assignment_scores else 50
+    mats = recommend_next_materials(req.completed_materials, req.division, req.course)
+    courses = recommend_courses(req.division, req.completed_materials)
+    risk, conf, expl = risk_level(req.learning_progress, req.attendance_rate, quiz_avg)
+    # Advisory only §45
     return RecommendationResponse(
-        recommended_materials=["material_1", "material_2"],
-        recommended_next_step="Lanjutkan ke modul berikutnya",
+        recommended_materials=mats,
+        recommended_courses=courses,
+        recommended_next_step=f"Lanjutkan ke {mats[0] if mats else 'next module'}",
         risk_level=risk,
-        explanation=f"Progress {req.learning_progress}% — risk {risk}",
-        confidence=0.75,
+        explanation=expl,
+        confidence=conf,
     )
 
-@app.post("/api/v1/ml/learning-analysis")
-def learning_analysis(req: RecommendationRequest, x_internal_secret: str = Header(None)):
+@app.post("/api/v1/ml/learning-analysis", response_model=LearningAnalysisResponse)
+def learning_analysis(req: LearningAnalysisRequest, x_internal_secret: str = Header(None)):
     verify_internal_secret(x_internal_secret)
-    return {"analysis": "placeholder", "request": req.model_dump()}
+    result = analyze_learning(req.learning_progress, req.quiz_scores, req.assignment_scores, req.attendance_rate, req.completed_materials)
+    return LearningAnalysisResponse(**result)
+
+@app.post("/api/v1/ml/student-risk", response_model=StudentRiskResponse)
+def student_risk(req: StudentRiskRequest, x_internal_secret: str = Header(None)):
+    verify_internal_secret(x_internal_secret)
+    result = predict_risk(
+        req.learning_progress, req.quiz_scores, req.assignment_scores, req.attendance_rate,
+        req.completed_materials, req.study_hours_per_week, req.stress_level
+    )
+    return StudentRiskResponse(**result)
+
+@app.post("/api/v1/ml/content-recommendation", response_model=ContentRecommendationResponse)
+def content_recommendation(req: ContentRecommendationRequest, x_internal_secret: str = Header(None)):
+    verify_internal_secret(x_internal_secret)
+    result = recommend_content(req.division, req.completed_courses, req.interests, req.level)
+    return ContentRecommendationResponse(**result)

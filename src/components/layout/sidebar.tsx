@@ -16,6 +16,12 @@ import {
   Building2,
   GraduationCap,
   Settings,
+  Brain,
+  Medal,
+  ScrollText,
+  Wallet,
+  Bell,
+  Mail,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/ui";
@@ -28,8 +34,14 @@ const navItems = [
   { href: "/attendance", label: "Attendance", icon: CalendarCheck },
   { href: "/grades", label: "Grades", icon: Award },
   { href: "/ranking", label: "Ranking", icon: Trophy },
+  { href: "/ml", label: "ML Insights", icon: Brain },
+  { href: "/achievements", label: "Achievements", icon: Medal },
+  { href: "/certificates", label: "Certificates", icon: ScrollText },
+  { href: "/finance", label: "Finance", icon: Wallet },
   { href: "/calendar", label: "Calendar", icon: Calendar },
   { href: "/discussions", label: "Discussions", icon: MessageSquare },
+  { href: "/messages", label: "Messages", icon: Mail },
+  { href: "/notifications", label: "Notifications", icon: Bell },
   { href: "/organization/members", label: "Organization", icon: Building2 },
   { href: "/mentor/students", label: "Mentor", icon: GraduationCap },
   { href: "/coordinator/division", label: "Coordinator", icon: Users },

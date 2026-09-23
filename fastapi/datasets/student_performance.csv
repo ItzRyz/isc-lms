@@ -1,0 +1,11 @@
+StudyHours,Attendance,AssignmentCompletion,ExamScore,FinalGrade,Resources,Internet,Gender,Age,LearningStyle,OnlineCourses,Discussions,Motivation,StressLevel,EduTech
+10,85,90,78,Good,High,Yes,Male,20,Visual,Yes,Yes,8,5,High
+5,60,70,55,Satisfactory,Medium,Yes,Female,22,Auditory,No,No,5,7,Medium
+15,95,95,88,Excellent,High,Yes,Male,19,Reading/Writing,Yes,Yes,9,3,High
+8,70,80,65,Satisfactory,Medium,No,Female,21,Kinesthetic,Yes,Yes,6,6,Medium
+12,90,85,82,Good,High,Yes,Male,20,Visual,No,Yes,7,4,High
+3,50,60,45,Needs Improvement,Low,No,Female,23,Auditory,No,No,4,8,Low
+20,95,100,92,Excellent,High,Yes,Male,20,Visual,Yes,Yes,10,2,High
+6,65,75,60,Satisfactory,Medium,Yes,Female,22,Kinesthetic,Yes,No,5,7,Medium
+9,80,85,75,Good,High,Yes,Male,21,Auditory,Yes,Yes,7,5,High
+4,55,65,50,Needs Improvement,Low,No,Male,24,Reading/Writing,No,No,3,9,Low
